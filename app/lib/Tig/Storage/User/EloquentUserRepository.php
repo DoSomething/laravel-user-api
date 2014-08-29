@@ -192,9 +192,12 @@ class EloquentUserRepository implements UserRepository {
   }
 
   /**
+   * Try login query with SHA256 password hash, which is the current practice
+   * at TiG. Failing that, try MD5, the old hashing practice. Then give up.
+   *
    * @param $email
    * @param $password
-   * @return mixed|void
+   * @return int|null
    */
   public function login($email, $password)
   {
@@ -208,5 +211,18 @@ class EloquentUserRepository implements UserRepository {
     {
       return $this->find($res[0]->UserID);
     }
+
+    $res = DB::table('Users')
+       ->select('UserID')
+       ->where('email', '=', $email)
+       ->where('password', '=', hash('md5', $password))
+       ->get();
+
+    if (!empty($res[0]->UserID))
+    {
+      return $this->find($res[0]->UserID);
+    }
+
+    return null;
   }
 }
