@@ -32,10 +32,9 @@ class UserController extends \BaseController {
 
     $this->basePath = Config::get('app.url', '');
 
-    if (empty($this->basePath))
-    {
+    if (empty($this->basePath)) {
       $this->basePath = (Request::secure()) ? 'https://' : 'http://';
-      $this->basePath .= Request::server('HTTP_HOST') .'/1/users';
+      $this->basePath .= Request::server('HTTP_HOST') . '/1/users';
     }
 
     $this->apiAuth = Config::get('app.tig_api_auth', array());
@@ -50,15 +49,14 @@ class UserController extends \BaseController {
    * @param Route $route
    * @param Request $request
    */
-  public function mockApiAuthFilter($route, $request)
-  {
+  public function mockApiAuthFilter($route, $request) {
 
     $apiAppId = Request::header('X-TiG-Application-Id');
     $apiKey = Request::header('X-TiG-REST-API-Key');
 
     if (empty($apiAppId) || empty($apiKey) ||
-      empty($this->apiAuth[$apiAppId]) || $this->apiAuth[$apiAppId] != $apiKey)
-    {
+      empty($this->apiAuth[$apiAppId]) || $this->apiAuth[$apiAppId] != $apiKey
+    ) {
       $response = Response::json(array('error' => 'unauthorized'));
       $response->setStatusCode(401);
       return $response;
@@ -71,8 +69,7 @@ class UserController extends \BaseController {
    * @param int $id
    * @return boolean
    */
-  public function checkForUser($id)
-  {
+  public function checkForUser($id) {
     $user = $this->user->find($id);
     return !empty($user);
   }
@@ -84,41 +81,37 @@ class UserController extends \BaseController {
    */
   public function noSuchUserResponse() {
     $response = Response::json(
-      array('error' => 'User does not exist')
+                        array('error' => 'User does not exist')
     );
     $response->setStatusCode(404);
     return $response;
   }
 
   /**
-	 * 1.0: Display user list.
+   * 1.0: Display user list.
    *
    * Future: Display user list by PartnerID.
    *
    * @todo Implement PartnerID restriction
-	 * @return mixed
-	 */
-	public function index()
-	{
+   * @return mixed
+   */
+  public function index() {
     // $users = $this->user->all();
     // return $users;
 
     return array('success' => 'yay');
-	}
+  }
 
-	/**
-	 * Store a newly created user in storage.
-	 *
-	 * @return Response
-	 */
-
-  public function store()
-  {
+  /**
+   * Store a newly created user in storage.
+   *
+   * @return Response
+   */
+  public function store() {
     $user = $this->user->create(Input::all());
 
     // Process email opt-in if we have one
-    if (Input::get('emailOpt') && Config::get('app.tig_process_optin'))
-    {
+    if (Input::get('emailOpt') && Config::get('app.tig_process_optin')) {
       UserHelper::processEmailOptin($user->UserID);
     }
 
@@ -146,40 +139,34 @@ class UserController extends \BaseController {
    * @param User $user
    * @return string
    */
-  public function getShowURL($user)
-  {
+  public function getShowURL($user) {
     return $this->basePath . '/' . $user->id;
   }
 
-	/**
-	 * Display the specified user.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function show($id)
-	{
+  /**
+   * Display the specified user.
+   *
+   * @param  int $id
+   * @return Response
+   */
+  public function show($id) {
 
-    try
-    {
+    try {
       return $this->user->find($id);
     }
-    catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e)
-    {
+    catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
       return $this->noSuchUserResponse();
     }
-	}
+  }
 
-	/**
-	 * Update the specified user in storage.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function update($id)
-	{
-    if (!$this->checkForUser($id))
-    {
+  /**
+   * Update the specified user in storage.
+   *
+   * @param  int $id
+   * @return Response
+   */
+  public function update($id) {
+    if (!$this->checkForUser($id)) {
       return $this->noSuchUserResponse();
     }
 
@@ -196,49 +183,44 @@ class UserController extends \BaseController {
     $response = Response::json($objectInfo);
 
     return $response;
-	}
+  }
 
-	/**
-	 * Remove the specified user from storage.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function destroy($id)
-	{
-    try
-    {
+  /**
+   * Remove the specified user from storage.
+   *
+   * @param  int $id
+   * @return Response
+   */
+  public function destroy($id) {
+    try {
       $this->user->delete($id);
     }
-    catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e)
-    {
+    catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
       return $this->noSuchUserResponse();
     }
 
     return Response::json(
-      array('success' => 'User deleted')
+                   array('success' => 'User deleted')
     );
-	}
+  }
 
   /**
    * Login handler.
    *
    * @return Response
    */
-  public function login()
-  {
+  public function login() {
     $email = Request::query('email');
     $password = Request::query('password');
 
     $authUser = $this->user->login($email, $password);
 
-    if (!$authUser)
-    {
+    if (!$authUser) {
       return $this->noSuchUserResponse();
     }
 
     $response = Response::json(
-      $authUser
+                        $authUser
     );
 
     return $response;
