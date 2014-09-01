@@ -81,7 +81,7 @@ class UserController extends \BaseController {
    */
   public function noSuchUserResponse() {
     $response = Response::json(
-                        array('error' => 'User does not exist')
+      array('error' => 'User does not exist')
     );
     $response->setStatusCode(404);
     return $response;
