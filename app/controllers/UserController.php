@@ -91,15 +91,19 @@ class UserController extends \BaseController {
   }
 
   /**
-	 * Display a full user list.
-	 *
-	 * @return Response
+	 * 1.0: Display user list.
+   *
+   * Future: Display user list by PartnerID.
+   *
+   * @todo Implement PartnerID restriction
+	 * @return mixed
 	 */
 	public function index()
 	{
-    $users = $this->user->all();
+    // $users = $this->user->all();
+    // return $users;
 
-    return $users;
+    return array('success' => 'yay');
 	}
 
 	/**
