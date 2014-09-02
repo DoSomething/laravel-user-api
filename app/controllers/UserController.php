@@ -23,6 +23,11 @@ class UserController extends \BaseController {
   private $basePath;
 
   /**
+   * Store PartnerID for the API partner's users
+   */
+  private $apiPartnerID;
+
+  /**
    * Inject the UserRepository as $user.
    *
    * Inject the mock API auth filter.
@@ -56,6 +61,9 @@ class UserController extends \BaseController {
 
 	# Check the DB for this App ID & Key
 	$apivalid = tigcache("SELECT PartnerID FROM tig.APIkeys WHERE ID = '{$apiAppId}' AND APIKey = '{$apiKey}'",600,1);
+	if (isset($apivalid['PartnerID'])) {
+		$this->apiPartnerID = $apivalid['PartnerID'];
+	}
     if (empty($apiAppId) || empty($apiKey) || !$apivalid) {
       $response = Response::json(array('error' => 'unauthorized'));
       $response->setStatusCode(401);
