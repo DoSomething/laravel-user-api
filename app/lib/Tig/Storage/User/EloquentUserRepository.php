@@ -3,8 +3,10 @@
 namespace Tig\Storage\User;
 
 use Illuminate\Support\Facades\DB as DB;
+use Illuminate\Support\Facades\Config as Config;
 use Symfony\Component\CssSelector\Exception\SyntaxErrorException;
 use User;
+use PartnerMember;
 use Tig\UserHelper;
 
 
@@ -20,7 +22,11 @@ class EloquentUserRepository implements UserRepository {
    * @return array
    */
   public function all() {
-    return User::all();
+    return DB::table('Users')
+      ->join('PartnerMembers', 'Users.UserID', '=', 'PartnerMembers.MemberID')
+      ->select('*')
+      ->get();
+    // return User::all();
   }
 
   /**
@@ -41,7 +47,11 @@ class EloquentUserRepository implements UserRepository {
    * @return User
    */
   public function findOne($key, $value) {
-    return User::where($key, '=', $value)->firstOrFail();
+    return User::where($key, '=', $value)
+      ->join('PartnerMembers', 'Users.UserID', '=', 'PartnerMembers.MemberID')
+      ->where('PartnerMembers.PartnerID', '=', Config::get('app.tig_partner_id'))
+      ->orWhere('PartnerMembers.PartnerID', '=', '0')
+      ->firstOrFail();
   }
 
   /**
@@ -131,6 +141,9 @@ class EloquentUserRepository implements UserRepository {
     if ($user->save())
     {
       $user->id = $user->UserID;
+
+      $this->ensurePartnerEntry($user->id, true);
+
       return $user;
     }
 
@@ -192,6 +205,38 @@ class EloquentUserRepository implements UserRepository {
   }
 
   /**
+   * Given an authenticated user, check that this user's ID exists with this
+   * app's partner ID in the PartnerMembers table. If not, create one.
+   *
+   * @param int $userID
+   * @param bool $claimOrigin Defaults to false. If true, enter a '1' in the
+   *             flOrigin column to claim this user as originating from the
+   *             API.
+   */
+  private function ensurePartnerEntry($userID, $claimOrigin = false)
+  {
+    $res = DB::table('PartnerMembers')
+             ->select('MemberID')
+             ->where('MemberID', '=', $userID)
+             ->where('PartnerID', '=', Config::get('app.tig_partner_id'))
+             ->get();
+
+    if (empty($res))
+    {
+      $pm = new PartnerMember();
+      $pm->MemberID = $userID;
+      $pm->PartnerID = Config::get('app.tig_partner_id');
+
+      if ($claimOrigin)
+      {
+        $pm->flOriginal = 1;
+      }
+
+      $pm->save();
+    }
+  }
+
+  /**
    * Try login query with SHA256 password hash, which is the current practice
    * at TiG. Failing that, try MD5, the old hashing practice. Then give up.
    *
@@ -205,21 +250,27 @@ class EloquentUserRepository implements UserRepository {
       ->select('UserID')
       ->where('email', '=', $email)
       ->where('password', '=', hash('sha256', $password))
+      // ->join('PartnerMembers', 'Users.UserID', '=', 'PartnerMembers.MemberID')
+      // ->where('PartnerMembers.PartnerID', '=', Config::get('app.tig_partner_id'))
       ->get();
 
     if (!empty($res[0]->UserID))
     {
+      $this->ensurePartnerEntry($res[0]->UserID);
       return $this->find($res[0]->UserID);
     }
 
     $res = DB::table('Users')
-       ->select('UserID')
-       ->where('email', '=', $email)
-       ->where('password', '=', hash('md5', $password))
-       ->get();
+      ->select('UserID')
+      ->where('email', '=', $email)
+      ->where('password', '=', hash('md5', $password))
+      // ->join('PartnerMembers', 'Users.UserID', '=', 'PartnerMembers.MemberID')
+      // ->where('PartnerMembers.PartnerID', '=', Config::get('app.tig_partner_id'))
+      ->get();
 
     if (!empty($res[0]->UserID))
     {
+      $this->ensurePartnerEntry($res[0]->UserID);
       return $this->find($res[0]->UserID);
     }
 

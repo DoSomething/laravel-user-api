@@ -39,5 +39,7 @@ return array(
    */
   'TIG_API_AUTH' => 'a:2:{s:6:"appid1";s:4:"key1";s:6:"appid2";s:4:"key2";}',
 
+  'TIG_PARTNER_ID' => 3,
+
   'TIG_PROCESS_OPTIN' => true,
 );
