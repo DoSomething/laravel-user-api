@@ -8,7 +8,7 @@
  * in other environments.
  */
 
-if (!function_exists('tigcache)'))
+if (!function_exists('tigcache'))
 {
   /**
    * Mock cached query result function. If $assume_single is truthy, return
