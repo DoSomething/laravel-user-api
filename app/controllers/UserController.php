@@ -56,15 +56,22 @@ class UserController extends \BaseController {
    */
   public function mockApiAuthFilter($route, $request) {
 
-    $apiAppId = Request::header('X-TiG-Application-Id');
-    $apiKey = Request::header('X-TiG-REST-API-Key');
+    // Escape header input.
+    $apiAppId = DB::connection()->getPdo()->quote(Request::header('X-TiG-Application-Id'));
+    $apiKey = DB::connection()->getPdo()->quote(Request::header('X-TiG-REST-API-Key'));
 
-	# Check the DB for this App ID & Key
-	$apivalid = tigcache("SELECT PartnerID FROM tig.APIkeys WHERE ID = '{$apiAppId}' AND APIKey = '{$apiKey}'",600,1);
-	if (isset($apivalid['PartnerID'])) {
-		$this->apiPartnerID = $apivalid['PartnerID'];
-	}
-    if (empty($apiAppId) || empty($apiKey) || !$apivalid) {
+    // Check the DB for this App ID & Key
+    $apiValid = tigcache(
+      "SELECT PartnerID FROM tig.APIkeys WHERE ID = {$apiAppId} AND APIKey = {$apiKey}",
+      600, // Cache time
+      1 // Assume single result
+    );
+
+    if (isset($apiValid['PartnerID'])) {
+      $this->apiPartnerID = $apiValid['PartnerID'];
+    }
+
+    if (empty($apiAppId) || empty($apiKey) || !$apiValid) {
       $response = Response::json(array('error' => 'unauthorized'));
       $response->setStatusCode(401);
       return $response;
@@ -107,7 +114,7 @@ class UserController extends \BaseController {
     // $users = $this->user->all();
     // return $users;
 
-    return array('success' => 'yay');
+    return array('success' => 'yay ' . $this->apiPartnerID);
   }
 
   /**

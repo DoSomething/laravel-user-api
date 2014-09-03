@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @file UserHelper class declaration.
+ */
+
 namespace Tig;
 
 use Illuminate\Support\Facades\DB as DB;
