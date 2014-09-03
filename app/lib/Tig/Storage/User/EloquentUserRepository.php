@@ -120,9 +120,9 @@ class EloquentUserRepository implements UserRepository {
 
     $user = new User;
 
-    $userID = $this->getNewId();
-
-    $user->UserID = $userID;
+    // Per DS-295, not needed. UserID autoincrements.
+    // $userID = $this->getNewId();
+    // $user->UserID = $userID;
 
     foreach ($data as $key => $val) {
       $user->$key = $val;
@@ -130,7 +130,7 @@ class EloquentUserRepository implements UserRepository {
 
     if ($user->save())
     {
-      $user->id = $user->UserID = $userID;
+      $user->id = $user->UserID;
       return $user;
     }
 
@@ -179,8 +179,8 @@ class EloquentUserRepository implements UserRepository {
   }
 
   /**
-   * Since the TiG UserID column doesn't autoincrement, find a new (max) user
-   * ID for an insert.
+   * If the TiG UserID column were not autoincrement, this could find a new
+   * (max) user ID for an insert.
    *
    * @return mixed
    */
