@@ -47,11 +47,21 @@ class EloquentUserRepository implements UserRepository {
    * @return User
    */
   public function findOne($key, $value) {
-    return User::where($key, '=', $value)
-      ->join('PartnerMembers', 'Users.UserID', '=', 'PartnerMembers.MemberID')
-      ->where('PartnerMembers.PartnerID', '=', Config::get('app.tig_partner_id'))
-      ->orWhere('PartnerMembers.PartnerID', '=', '0')
-      ->firstOrFail();
+    $partnerID = Config::get('app.tig_partner_id');
+
+    if (isset($partnerID))
+    {
+      return User::where($key, '=', $value)
+                 ->join('PartnerMembers', 'Users.UserID', '=', 'PartnerMembers.MemberID')
+                 ->where('PartnerMembers.PartnerID', '=', Config::get('app.tig_partner_id'))
+                 ->orWhere('PartnerMembers.PartnerID', '=', '0')
+                 ->firstOrFail();
+    }
+    else
+    {
+      return User::where($key, '=', $value)->firstOrFail();
+    }
+
   }
 
   /**
@@ -250,8 +260,6 @@ class EloquentUserRepository implements UserRepository {
       ->select('UserID')
       ->where('email', '=', $email)
       ->where('password', '=', hash('sha256', $password))
-      // ->join('PartnerMembers', 'Users.UserID', '=', 'PartnerMembers.MemberID')
-      // ->where('PartnerMembers.PartnerID', '=', Config::get('app.tig_partner_id'))
       ->get();
 
     if (!empty($res[0]->UserID))
@@ -264,8 +272,6 @@ class EloquentUserRepository implements UserRepository {
       ->select('UserID')
       ->where('email', '=', $email)
       ->where('password', '=', hash('md5', $password))
-      // ->join('PartnerMembers', 'Users.UserID', '=', 'PartnerMembers.MemberID')
-      // ->where('PartnerMembers.PartnerID', '=', Config::get('app.tig_partner_id'))
       ->get();
 
     if (!empty($res[0]->UserID))

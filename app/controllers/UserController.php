@@ -44,7 +44,7 @@ class UserController extends \BaseController {
 
     $this->apiAuth = Config::get('app.tig_api_auth', array());
 
-    $this->beforeFilter('@mockApiAuthFilter');
+    $this->beforeFilter('@apiAuthFilter');
   }
 
   /**
@@ -54,7 +54,7 @@ class UserController extends \BaseController {
    * @param Route $route
    * @param Request $request
    */
-  public function mockApiAuthFilter($route, $request) {
+  public function apiAuthFilter($route, $request) {
 
     // Escape header input.
     $apiAppId = DB::connection()->getPdo()->quote(Request::header('X-TiG-Application-Id'));
@@ -69,6 +69,7 @@ class UserController extends \BaseController {
 
     if (isset($apiValid['PartnerID'])) {
       $this->apiPartnerID = $apiValid['PartnerID'];
+      Config::set('app.tig_partner_id', $this->apiPartnerID);
     }
 
     if (empty($apiAppId) || empty($apiKey) || !$apiValid) {

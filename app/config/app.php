@@ -45,10 +45,12 @@ return array(
 	|--------------------------------------------------------------------------
 	|
   | The partner ID for this application in the TiG PartnerMembers table.
+  | Typically assigned by the header authentication method in
+  | UserController::apiAuthFilter().
 	|
 	*/
 
-  'tig_partner_id' => $_ENV['TIG_PARTNER_ID'],
+  'tig_partner_id' => (!empty($_ENV['TIG_PARTNER_ID'])) ? $_ENV['TIG_PARTNER_ID'] : null,
 
 	/*
 	|--------------------------------------------------------------------------
