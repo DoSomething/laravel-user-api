@@ -39,6 +39,19 @@ return array(
 
   'tig_process_optin' => $_ENV['TIG_PROCESS_OPTIN'],
 
+  /*
+	|--------------------------------------------------------------------------
+	| TiG API Partner ID
+	|--------------------------------------------------------------------------
+	|
+  | The partner ID for this application in the TiG PartnerMembers table.
+  | Typically assigned by the header authentication method in
+  | UserController::apiAuthFilter().
+	|
+	*/
+
+  'tig_partner_id' => (!empty($_ENV['TIG_PARTNER_ID'])) ? $_ENV['TIG_PARTNER_ID'] : null,
+
 	/*
 	|--------------------------------------------------------------------------
 	| Application Debug Mode
