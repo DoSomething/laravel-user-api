@@ -54,7 +54,6 @@ class EloquentUserRepository implements UserRepository {
       return User::where($key, '=', $value)
                  ->join('PartnerMembers', 'Users.UserID', '=', 'PartnerMembers.MemberID')
                  ->where('PartnerMembers.PartnerID', '=', Config::get('app.tig_partner_id'))
-                 ->orWhere('PartnerMembers.PartnerID', '=', '0')
                  ->firstOrFail();
     }
     else
