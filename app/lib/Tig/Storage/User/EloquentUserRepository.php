@@ -110,6 +110,7 @@ class EloquentUserRepository implements UserRepository {
     {
       // SHA256 for new passwords.
       $data['password'] = UserHelper::makePassword($data['password']);
+      UserHelper::setPasswordHashMethod($data);
     }
 
     // Map Laravel-happy column names to their TiG DB equivalents.
