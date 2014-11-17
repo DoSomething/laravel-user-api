@@ -18,8 +18,19 @@ class UserHelper {
    * @param $raw
    * @return string
    */
-  public static function makePassword($raw) {
-    return hash('sha256', $raw);
+  public static function makePassword($raw_password) {
+    // SHA256 for new passwords.
+    return hash('sha256', $raw_password);
+  }
+
+  /**
+   * Sets hash method for the user password.
+   *
+   * @param $data
+   * @return string
+   */
+  public static function setPasswordHashMethod(&$data) {
+    $data['flSHA'] = 1;
   }
 
   /**
