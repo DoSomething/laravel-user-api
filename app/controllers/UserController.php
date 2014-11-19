@@ -126,25 +126,39 @@ class UserController extends \BaseController {
   public function store() {
     $user = $this->user->create(Input::all());
 
-    // Process email opt-in if we have one
-    if (Input::get('emailOpt') && Config::get('app.tig_process_optin')) {
-      UserHelper::processEmailOptin($user->UserID);
+    // Validate user.
+    if (!$user->hasErrors()) {
+
+      // Process email opt-in if we have one
+      if (Input::get('emailOpt') && Config::get('app.tig_process_optin')) {
+        UserHelper::processEmailOptin($user->UserID);
+      }
+
+      // Because the legacy DB doesn't have a created_at column, we'll have to
+      // supply that without persisting it.
+      $objectInfo = array(
+        'createdAt' => date(DATE_ISO8601),
+        'objectId' => $user->id,
+      );
+
+      /** @var Symfony\Component\HttpFoundation\Response $response */
+      $response = Response::json($objectInfo);
+      $response->setStatusCode(201);
+      $response->headers->add(array(
+        'Location' => $this->getShowURL($user),
+      ));
+    } else {
+
+      // Validation errors.
+      $errorResponse = array(
+        'error' => true,
+        'error_messages' => $user->getErrors(),
+      );
+      $response = Response::json($errorResponse);
+
+      // 422 Unprocessable Entity.
+      $response->setStatusCode(422);
     }
-
-    // Because the legacy DB doesn't have a created_at column, we'll have to
-    // supply that without persisting it.
-    $objectInfo = array(
-      'createdAt' => date(DATE_ISO8601),
-      'objectId' => $user->id,
-    );
-
-    /** @var Symfony\Component\HttpFoundation\Response $response */
-    $response = Response::json($objectInfo);
-    $response->setStatusCode(201);
-
-    $response->headers->add(array(
-      'Location' => $this->getShowURL($user),
-    ));
 
     return $response;
   }

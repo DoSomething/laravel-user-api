@@ -5,7 +5,7 @@ use Illuminate\Auth\UserInterface;
 use Illuminate\Auth\Reminders\RemindableTrait;
 use Illuminate\Auth\Reminders\RemindableInterface;
 
-class User extends Eloquent implements UserInterface, RemindableInterface {
+class User extends Way\Database\Model implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 
@@ -38,7 +38,7 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
    *
    * @var array
    */
-  protected $fillable = array(
+  public $fillable = array(
     'Username',
     'Password',
     'Email',
@@ -74,5 +74,17 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
 	 * @var array
 	 */
 	protected $hidden = array('Password', 'remember_token');
+
+  /**
+   * Model fields validation ruleset.
+   *
+   * @var array
+   */
+  protected static $rules = array(
+    'Name'     => 'required',
+    'Email'    => 'required|email|unique:Users',
+    'Password' => 'required',
+    'DOB'      => 'required|date',
+  );
 
 }
