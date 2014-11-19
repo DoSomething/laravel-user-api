@@ -150,8 +150,11 @@ class UserController extends \BaseController {
     } else {
 
       // Validation errors.
-      $errorMessages = array('error_messages' => $user->getErrors());
-      $response = Response::json($errorMessages);
+      $errorResponse = array(
+        'error' => true,
+        'error_messages' => $user->getErrors(),
+      );
+      $response = Response::json($errorResponse);
 
       // 422 Unprocessable Entity.
       $response->setStatusCode(422);
