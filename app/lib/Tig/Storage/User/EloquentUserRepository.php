@@ -131,35 +131,16 @@ class EloquentUserRepository implements UserRepository {
 
   /**
    * @param array $data
-   * @throws Exception
    * @return User
    */
   public function create($data)
   {
-    $data = $this->prepareUserData($data, 'create');
-
-    $user = new User;
-
-    // Per DS-295, not needed. UserID autoincrements.
-    // $userID = $this->getNewId();
-    // $user->UserID = $userID;
-
-    foreach ($data as $key => $val) {
-      $user->$key = $val;
-    }
-
-    if ($user->save())
-    {
+    $user = $this->buildUserFieldsFromInputData($data);
+    if ($user->save()) {
       $user->id = $user->UserID;
-
       $this->ensurePartnerEntry($user->id, true);
-
-      return $user;
     }
-
-    throw new Exception(
-      sprintf('Unable to create new user with email=%s', $data['Email'])
-    );
+    return $user;
   }
 
   /**
@@ -167,28 +148,14 @@ class EloquentUserRepository implements UserRepository {
    *
    * @param int $id
    * @param array $data
-   * @throws \Exception
    * @return \User
    */
   public function update($id, $data)
   {
-    $user = $this->find($id);
-
-    $data = $this->prepareUserData($data, 'update');
-
-    // TODO: Evaluate security of mass assignment.
-    foreach ($data as $key => $val) {
-      $user->$key = $val;
-    }
-
-    if ($user->save())
-    {
-      return $user;
-    }
-
-    throw new \Exception(
-      sprintf('Unable to create new user with email=%s', $data['Email'])
-    );
+    // Note: $this->find() throws an exception when user is not found.
+    $user = $this->buildUserFieldsFromInputData($data, $this->find($id));
+    $user->save();
+    return $user;
   }
 
   /**
@@ -281,5 +248,24 @@ class EloquentUserRepository implements UserRepository {
     }
 
     return null;
+  }
+
+  private function buildUserFieldsFromInputData($data, $user = null) {
+    if (!isset($user)) {
+      // For create.
+      $user = new User;
+      $data = $this->prepareUserData($data, 'create');
+    } else {
+      // For update.
+      $data = $this->prepareUserData($data, 'update');
+    }
+
+    foreach ($data as $key => $value) {
+      // Protect User from the mass assigment.
+      if (in_array($key, $user->fillable)) {
+        $user->$key = $value;
+      }
+    }
+    return $user;
   }
 }
