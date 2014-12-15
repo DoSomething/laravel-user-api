@@ -5,7 +5,7 @@ use Illuminate\Auth\UserInterface;
 use Illuminate\Auth\Reminders\RemindableTrait;
 use Illuminate\Auth\Reminders\RemindableInterface;
 
-class User extends Way\Database\Model implements UserInterface, RemindableInterface {
+class User extends Eloquent implements UserInterface, RemindableInterface {
 
 	use UserTrait, RemindableTrait;
 
@@ -75,16 +75,72 @@ class User extends Way\Database\Model implements UserInterface, RemindableInterf
 	 */
 	protected $hidden = array('Password', 'remember_token');
 
+
+  /**
+   * The error messages from the last model validation.
+   *
+   * @var array
+   */
+  private $errors = array();
+
   /**
    * Model fields validation ruleset.
    *
    * @var array
    */
-  protected static $rules = array(
+  private $rules = array(
     'Name'     => 'required',
     'Email'    => 'required|email|unique:Users',
     'Password' => 'required',
     'DOB'      => 'required|date',
   );
+
+  /**
+   * Add saving listener to attach model validation.
+   */
+  protected static function boot() {
+    parent::boot();
+
+    // Attach the validation on model saving.
+    static::saving(function($model) {
+      return $model->validate();
+    });
+  }
+
+  /**
+   * Validate model against specified ruleset.
+   *
+   * @return bool
+   */
+  public function validate()
+  {
+    $this->errors = array();
+    $validator = Validator::make($this->attributes, $this->rules);
+
+    if ($validator->fails()) {
+      $this->errors = $validator->messages();
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Return error messages for the last validation.
+   *
+   * @return array
+   */
+  public function getErrors() {
+    return $this->errors;
+  }
+
+  /**
+   * Determine if the model didn't pass the last validation.
+   *
+   * @return bool
+   */
+  public function hasErrors() {
+    return !empty($this->errors);
+  }
 
 }
