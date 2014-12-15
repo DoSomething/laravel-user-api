@@ -90,7 +90,7 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
    */
   private $rules = array(
     'Name'     => 'required',
-    'Email'    => 'required|email|unique:Users',
+    'Email'    => 'required|email|unique:Users,Email',
     'Password' => 'required',
     'DOB'      => 'required|date',
   );
@@ -105,6 +105,7 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
     static::saving(function($model) {
       return $model->validate();
     });
+
   }
 
   /**
@@ -115,7 +116,16 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
   public function validate()
   {
     $this->errors = array();
-    $validator = Validator::make($this->attributes, $this->rules);
+    $rules = $this->rules;
+
+    // Add a condition `and user id is not $UserID` when validating email
+    // of existing user.
+    if ($this->exists) {
+      // @see http://laravel.com/docs/4.2/validation#rule-unique
+      // unique:table,column,except,idColumn
+      $rules['Email'] .= ',' . $this->UserID . ',UserID';
+    }
+    $validator = Validator::make($this->attributes, $rules);
 
     if ($validator->fails()) {
       $this->errors = $validator->messages();
