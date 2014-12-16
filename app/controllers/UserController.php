@@ -200,17 +200,33 @@ class UserController extends \BaseController {
       return $this->noSuchUserResponse();
     }
 
-    $this->user->update($id, Input::all());
+    $user = $this->user->update($id, Input::all());
 
-    // The TiG DB doesn't store this info, so we generate it here to comply
-    // with the API spec.
-    $objectInfo = array(
-      'objectId' => $id,
-      'updatedAt' => date(DATE_ISO8601),
-    );
+    // Validate user.
+    if (!$user->hasErrors()) {
 
-    /** @var Symfony\Component\HttpFoundation\Response $response */
-    $response = Response::json($objectInfo);
+      // The TiG DB doesn't store this info, so we generate it here to comply
+      // with the API spec.
+      $objectInfo = array(
+        'objectId' => $id,
+        'updatedAt' => date(DATE_ISO8601),
+      );
+
+      /** @var Symfony\Component\HttpFoundation\Response $response */
+      $response = Response::json($objectInfo);
+
+    } else {
+
+      // Validation errors.
+      $errorResponse = array(
+        'error' => true,
+        'error_messages' => $user->getErrors(),
+      );
+      $response = Response::json($errorResponse);
+
+      // 422 Unprocessable Entity.
+      $response->setStatusCode(422);
+    }
 
     return $response;
   }
