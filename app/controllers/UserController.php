@@ -91,6 +91,21 @@ class UserController extends \BaseController {
   }
 
   /**
+   * For update, make sure user with given email exists.
+   *
+   * @param int $email
+   * @return int|false
+   *   User id or false.
+   */
+  public function getUserIdByEmail($email) {
+    $user = $this->user->findOne('Email', $email);
+    if (empty($user) || empty($user->UserID)) {
+      return false;
+    }
+    return $user->UserID;
+  }
+
+  /**
    * Generic response for operations on a missing user.
    *
    * @return mixed
@@ -192,11 +207,21 @@ class UserController extends \BaseController {
   /**
    * Update the specified user in storage.
    *
-   * @param  int $id
+   * @param  int|string $resource
+   *   User id or user email.
    * @return Response
    */
-  public function update($id) {
-    if (!$this->checkForUser($id)) {
+  public function update($resource) {
+    if (is_numeric($resource)) {
+      // Find by id.
+      if ($this->checkForUser($resource)) {
+        $id = $resource;
+      }
+    } else {
+      // Find by email.
+      $id = $this->getUserIdByEmail($resource);
+    }
+    if (empty($id)) {
       return $this->noSuchUserResponse();
     }
 
