@@ -51,6 +51,7 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
     'City',
     'Gender',
     'DateJoined',
+    'flSHA'
   );
 
 	/**
