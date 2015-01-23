@@ -191,17 +191,13 @@ class UserController extends \BaseController {
   /**
    * Display the specified user.
    *
-   * @param  int $id
+   * @param  int|string $resource
+   *   User id or user email.
    * @return Response
    */
-  public function show($id) {
-
-    try {
-      return $this->user->find($id);
-    }
-    catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-      return $this->noSuchUserResponse();
-    }
+  public function show($resource) {
+    $id = $this->getUserIdByResource($resource);
+    return $id ? $this->user->find($id) : $this->noSuchUserResponse();
   }
 
   /**
@@ -212,16 +208,7 @@ class UserController extends \BaseController {
    * @return Response
    */
   public function update($resource) {
-    if (is_numeric($resource)) {
-      // Find by id.
-      if ($this->checkForUser($resource)) {
-        $id = $resource;
-      }
-    } else {
-      // Find by email.
-      $id = $this->getUserIdByEmail($resource);
-    }
-    if (empty($id)) {
+    if (!$id = $this->getUserIdByResource($resource)) {
       return $this->noSuchUserResponse();
     }
 
@@ -295,6 +282,33 @@ class UserController extends \BaseController {
     );
 
     return $response;
+  }
+
+  /**
+   * Return user id by resource.
+   *
+   * @param  int|string $resource
+   *   User id or user email.
+   *
+   * @return id|FALSE
+   *   The user id if user found, otherwise FALSE.
+   */
+  private function getUserIdByResource($resource) {
+    $id = false;
+    try {
+      if (is_numeric($resource)) {
+        // Find by id.
+        if ($this->checkForUser($resource)) {
+          $id = $resource;
+        }
+      } else {
+        // Find by email.
+        $id = $this->getUserIdByEmail($resource);
+      }
+    } catch (Exception $e) {
+      return false;
+    }
+    return $id;
   }
 
 }
