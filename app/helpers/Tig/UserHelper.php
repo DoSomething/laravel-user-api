@@ -7,6 +7,7 @@
 namespace Tig;
 
 use Illuminate\Support\Facades\DB as DB;
+use Illuminate\Support\Str as Str;
 
 class UserHelper {
 
@@ -34,24 +35,14 @@ class UserHelper {
   }
 
   /**
-   * Try to use various properties to make a reasonable username for TiG.
+   * Return generated username based on first name and current time stamp
+   * to avoid collisions.
    *
    * @param $data
    * @return string
    */
   public static function makeUsername($data) {
-
-    if (!empty($data['mobile']))
-    {
-      return self::$USERNAME_PREFIX . preg_replace('/[^0-9]*/', '', $data['mobile']);
-    }
-
-    if (!empty($data['email']))
-    {
-      return self::$USERNAME_PREFIX . preg_replace('/[^a-z0-9A-Z]*/', '', $data['email']);
-    }
-
-    return substr(hash('sha256', time()), 16);
+    return Str::lower($data['firstName']) . '-' . time();
   }
 
   /**
