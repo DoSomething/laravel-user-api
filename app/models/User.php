@@ -92,6 +92,7 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
   private $rules = array(
     'Name'     => 'required',
     'Email'    => 'required|email|unique:Users,Email',
+    'Username' => 'required|unique:Users,Username',
     'Password' => 'required',
     'DOB'      => 'required|date',
   );
@@ -124,7 +125,8 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
     if ($this->exists) {
       // @see http://laravel.com/docs/4.2/validation#rule-unique
       // unique:table,column,except,idColumn
-      $rules['Email'] .= ',' . $this->UserID . ',UserID';
+      $rules['Email']    .= ',' . $this->UserID . ',UserID';
+      $rules['Username'] .= ',' . $this->UserID . ',UserID';
     }
     $validator = Validator::make($this->attributes, $rules);
 
